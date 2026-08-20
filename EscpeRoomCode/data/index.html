@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sala de Enigmas</title>
+<style>
+  :root {
+    --bg: #14171c;
+    --card-bg: #1e232b;
+    --card-border: #2b323d;
+    --accent: #5eead4;
+    --accent-dim: #2f6b62;
+    --pendente: #8a90a0;
+    --resolvido: #5eead4;
+    --text: #e7e9ee;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 40px 20px;
+    background: radial-gradient(circle at top, #1b2028, #0f1216 70%);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  header h1 {
+    font-size: 1.9em;
+    margin: 0 0 6px 0;
+    letter-spacing: 0.5px;
+  }
+
+  header p {
+    color: #8a90a0;
+    margin: 0;
+    font-size: 0.95em;
+  }
+
+  a.link-equipas {
+    display: block;
+    text-align: center;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9em;
+    margin-bottom: 24px;
+  }
+  a.link-equipas:hover { text-decoration: underline; }
+
+  /* ---- Painel de controlo da equipa ---- */
+  #painelEquipa {
+    max-width: 500px;
+    margin: 0 auto 36px auto;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 22px;
+    text-align: center;
+  }
+
+  #formIniciar {
+    display: flex;
+    gap: 10px;
+  }
+
+  #inputNome {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: #14171c;
+    color: var(--text);
+    font-size: 1em;
+  }
+  #inputNome:focus { outline: 1px solid var(--accent); }
+
+  #btnIniciar {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #0f1216;
+    font-weight: 700;
+    font-size: 1em;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+  #btnIniciar:hover { opacity: 0.85; }
+  #btnIniciar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  #painelAtivo { display: none; }
+  #painelAtivo .nome-equipa {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  #painelAtivo .timer {
+    font-size: 2.2em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  #painelErro {
+    color: #f87171;
+    font-size: 0.85em;
+    margin-top: 10px;
+    display: none;
+  }
+
+  #enigmas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .enigma-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .enigma-card.resolvido {
+    border-color: var(--accent-dim);
+  }
+
+  .enigma-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--pendente);
+    transition: background 0.3s ease;
+  }
+
+  .enigma-card.resolvido::before {
+    background: var(--accent);
+  }
+
+  .enigma-titulo {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #8a90a0;
+    margin-bottom: 10px;
+  }
+
+  .enigma-valor {
+    font-size: 1.7em;
+    font-weight: 700;
+    word-break: break-word;
+    color: var(--pendente);
+    transition: color 0.3s ease;
+  }
+
+  .enigma-card.resolvido .enigma-valor {
+    color: var(--resolvido);
+  }
+
+  .status-tag {
+    display: inline-block;
+    margin-top: 12px;
+    margin-right: 6px;
+    font-size: 0.75em;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #2b323d;
+    color: #8a90a0;
+  }
+
+  .enigma-card.resolvido .status-tag {
+    background: rgba(94, 234, 212, 0.12);
+    color: var(--accent);
+  }
+
+  .online-tag {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 0.75em;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .online-tag.online {
+    background: rgba(94, 234, 212, 0.12);
+    color: var(--accent);
+  }
+  .online-tag.offline {
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+  }
+
+  .tentativas-tag {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.8em;
+    color: #6b7180;
+  }
+
+  #erro {
+    text-align: center;
+    color: #f87171;
+    margin-top: 30px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sala de Enigmas</h1>
+  <p>Códigos recebidos em tempo real</p>
+</header>
+
+<a class="link-equipas" href="/equipas">Ver histórico de equipas &rarr;</a>
+
+<div id="painelEquipa">
+  <div id="painelIniciar">
+    <form id="formIniciar">
+      <input type="text" id="inputNome" placeholder="Nome da equipa" autocomplete="off" />
+      <button type="submit" id="btnIniciar">Iniciar</button>
+    </form>
+    <div id="painelErro"></div>
+  </div>
+
+  <div id="painelAtivo">
+    <div class="nome-equipa" id="nomeEquipaAtiva"></div>
+    <div class="timer" id="timerAtivo">00:00:00</div>
+  </div>
+</div>
+
+<div id="enigmas"></div>
+<p id="erro">Erro de ligação ao servidor...</p>
+
+<script>
+  const container = document.getElementById('enigmas');
+  const erroEl = document.getElementById('erro');
+  let cardsCriados = false;
+
+  const painelIniciar = document.getElementById('painelIniciar');
+  const painelAtivo = document.getElementById('painelAtivo');
+  const formIniciar = document.getElementById('formIniciar');
+  const inputNome = document.getElementById('inputNome');
+  const btnIniciar = document.getElementById('btnIniciar');
+  const painelErro = document.getElementById('painelErro');
+  const nomeEquipaAtivaEl = document.getElementById('nomeEquipaAtiva');
+  const timerAtivoEl = document.getElementById('timerAtivo');
+
+  function chaveParaNumero(chave) {
+    return parseInt(chave.replace('cod', ''), 10);
+  }
+
+  function criarCards(dados) {
+    const chaves = Object.keys(dados)
+      .filter((k) => k.startsWith('cod'))
+      .sort((a, b) => chaveParaNumero(a) - chaveParaNumero(b));
+
+    container.innerHTML = '';
+    chaves.forEach((chave) => {
+      const numero = chaveParaNumero(chave);
+      const card = document.createElement('div');
+      card.className = 'enigma-card';
+      card.id = 'card-' + chave;
+
+      card.innerHTML = `
+        <div class="enigma-titulo">Enigma ${numero}</div>
+        <div class="enigma-valor" id="valor-${chave}"></div>
+        <div class="status-tag" id="status-${chave}"></div>
+        <div class="online-tag" id="online-${chave}"></div>
+        <div class="tentativas-tag" id="tentativas-${chave}"></div>
+      `;
+      container.appendChild(card);
+    });
+    cardsCriados = true;
+  }
+
+  function atualizarCards(dados) {
+    Object.keys(dados).forEach((chave) => {
+      if (!chave.startsWith('cod')) return;
+
+      const estado = dados[chave];
+      const resolvido = estado.resolvido === true;
+      const tentativas = estado.tentativas || 0;
+      const atual = estado.atual || '';
+      const online = estado.online === true;
+
+      const card = document.getElementById('card-' + chave);
+      const valorEl = document.getElementById('valor-' + chave);
+      const statusEl = document.getElementById('status-' + chave);
+      const onlineEl = document.getElementById('online-' + chave);
+      const tentativasEl = document.getElementById('tentativas-' + chave);
+      if (!card || !valorEl || !statusEl || !onlineEl || !tentativasEl) return;
+
+      if (resolvido) {
+        valorEl.innerText = atual;
+      } else if (atual.length > 0) {
+        valorEl.innerText = atual;
+      } else {
+        valorEl.innerText = 'Por descobrir';
+      }
+
+      statusEl.innerText = resolvido ? 'Resolvido' : 'A aguardar';
+      onlineEl.innerText = online ? 'Online' : 'Offline';
+      onlineEl.className = 'online-tag ' + (online ? 'online' : 'offline');
+      tentativasEl.innerText = 'Tentativas erradas: ' + tentativas;
+      card.classList.toggle('resolvido', resolvido);
+    });
+  }
+
+  function atualizarPainelEquipa(dados) {
+    const emProgresso = dados.emProgresso === true;
+
+    if (emProgresso) {
+      painelIniciar.style.display = 'none';
+      painelAtivo.style.display = 'block';
+      nomeEquipaAtivaEl.innerText = dados.equipaAtual || '';
+      timerAtivoEl.innerText = dados.tempoDecorrido || '00:00:00';
+    } else {
+      painelIniciar.style.display = 'block';
+      painelAtivo.style.display = 'none';
+    }
+  }
+
+  async function atualizar() {
+    try {
+      const res = await fetch('/valores');
+      const dados = await res.json();
+
+      if (!cardsCriados) {
+        criarCards(dados);
+      }
+      atualizarCards(dados);
+      atualizarPainelEquipa(dados);
+      erroEl.style.display = 'none';
+    } catch (e) {
+      erroEl.style.display = 'block';
+    }
+  }
+
+  formIniciar.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nome = inputNome.value.trim();
+    painelErro.style.display = 'none';
+
+    if (nome.length === 0) {
+      painelErro.innerText = 'Escreve o nome da equipa.';
+      painelErro.style.display = 'block';
+      return;
+    }
+
+    btnIniciar.disabled = true;
+    try {
+      const res = await fetch('/equipa/nova?nome=' + encodeURIComponent(nome));
+      if (!res.ok) throw new Error('Falha ao iniciar');
+      inputNome.value = '';
+      atualizar(); // atualiza logo o painel, sem esperar pelo proximo ciclo
+    } catch (e) {
+      painelErro.innerText = 'Não foi possível iniciar a equipa. Tenta novamente.';
+      painelErro.style.display = 'block';
+    } finally {
+      btnIniciar.disabled = false;
+    }
+  });
+
+  setInterval(atualizar, 300);
+  atualizar();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equipas - Sala de Enigmas</title>
+<style>
+  :root {
+    --bg: #14171c;
+    --card-bg: #1e232b;
+    --card-border: #2b323d;
+    --accent: #5eead4;
+    --text: #e7e9ee;
+    --muted: #8a90a0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 20px;
+    background: radial-gradient(circle at top, #1b2028, #0f1216 70%);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    min-height: 100vh;
+  }
+  header { text-align: center; margin-bottom: 30px; }
+  header h1 { font-size: 1.9em; margin: 0 0 6px 0; }
+  header p { color: var(--muted); margin: 0; font-size: 0.95em; }
+
+  .em-progresso {
+    max-width: 900px;
+    margin: 0 auto 24px auto;
+    background: var(--card-bg);
+    border: 1px solid var(--accent);
+    border-radius: 14px;
+    padding: 16px 22px;
+    text-align: center;
+    display: none;
+  }
+  .em-progresso.ativo { display: block; }
+  .em-progresso .nome { font-size: 1.3em; font-weight: 700; color: var(--accent); }
+  .em-progresso .timer { font-size: 1.6em; font-weight: 700; margin-top: 4px; }
+
+  table {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--card-border);
+    font-size: 0.9em;
+  }
+  th {
+    background: #232a34;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 0.75em;
+    letter-spacing: 1px;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #232a34; }
+
+  #vazio {
+    text-align: center;
+    color: var(--muted);
+    margin-top: 30px;
+    display: none;
+  }
+  #erro {
+    text-align: center;
+    color: #f87171;
+    margin-top: 30px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Histórico de Equipas</h1>
+  <p>Resultados registados na sala de enigmas</p>
+</header>
+
+<div class="em-progresso" id="progresso">
+  <div class="nome" id="progressoNome"></div>
+  <div class="timer" id="progressoTimer"></div>
+</div>
+
+<table id="tabela" style="display:none;">
+  <thead>
+    <tr id="cabecalho">
+      <th>Equipa</th>
+      <th>Chegada</th>
+      <th>Início</th>
+      <th>Fim</th>
+      <th>Tempo total</th>
+      <!-- colunas "Tent. E1", "Tent. E2", ... geradas dinamicamente por JS -->
+      <th>Total tent.</th>
+    </tr>
+  </thead>
+  <tbody id="corpo"></tbody>
+</table>
+
+<p id="vazio">Ainda não há equipas registadas.</p>
+<p id="erro">Erro de ligação ao servidor...</p>
+
+<script>
+  const corpo = document.getElementById('corpo');
+  const tabela = document.getElementById('tabela');
+  const vazioEl = document.getElementById('vazio');
+  const erroEl = document.getElementById('erro');
+  const progressoEl = document.getElementById('progresso');
+  const progressoNomeEl = document.getElementById('progressoNome');
+  const progressoTimerEl = document.getElementById('progressoTimer');
+
+  function formatarTempoTotal(segundos) {
+    const h = Math.floor(segundos / 3600);
+    const m = Math.floor((segundos % 3600) / 60);
+    const s = segundos % 60;
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  let numEnigmasAtual = -1; // para so reconstruir o cabecalho quando muda
+
+  function ajustarCabecalho(numEnigmas) {
+    if (numEnigmas === numEnigmasAtual) return;
+    numEnigmasAtual = numEnigmas;
+
+    const cabecalho = document.getElementById('cabecalho');
+    // remove eventuais colunas "Tent. E*" antigas (mantem as 5 fixas do inicio + "Total tent." no fim)
+    while (cabecalho.children.length > 6) {
+      cabecalho.removeChild(cabecalho.children[5]);
+    }
+    for (let i = numEnigmas; i >= 1; i--) {
+      const th = document.createElement('th');
+      th.innerText = 'Tent. E' + i;
+      cabecalho.insertBefore(th, cabecalho.children[5]);
+    }
+  }
+
+  async function atualizarLista() {
+    try {
+      const res = await fetch('/equipas.json');
+      const equipas = await res.json();
+
+      if (equipas.length === 0) {
+        tabela.style.display = 'none';
+        vazioEl.style.display = 'block';
+      } else {
+        vazioEl.style.display = 'none';
+        tabela.style.display = 'table';
+
+        // usa o numero de enigmas da equipa mais recente para montar o cabecalho
+        const ultima = equipas[equipas.length - 1];
+        ajustarCabecalho((ultima.tentativas || []).length);
+
+        corpo.innerHTML = '';
+        // mostra a mais recente primeiro
+        equipas.slice().reverse().forEach((eq) => {
+          const tr = document.createElement('tr');
+          const colunasTentativas = (eq.tentativas || []).map((t) => `<td>${t}</td>`).join('');
+          tr.innerHTML = `
+            <td>${eq.nome}</td>
+            <td>${eq.horaChegada}</td>
+            <td>${eq.horaInicio}</td>
+            <td>${eq.horaFim}</td>
+            <td>${formatarTempoTotal(eq.tempoTotalSeg)}</td>
+            ${colunasTentativas}
+            <td>${eq.tentativasTotal}</td>
+          `;
+          corpo.appendChild(tr);
+        });
+      }
+      erroEl.style.display = 'none';
+    } catch (e) {
+      erroEl.style.display = 'block';
+    }
+  }
+
+  async function atualizarProgresso() {
+    try {
+      const res = await fetch('/valores');
+      const dados = await res.json();
+
+      if (dados.emProgresso) {
+        progressoEl.classList.add('ativo');
+        progressoNomeEl.innerText = dados.equipaAtual;
+        progressoTimerEl.innerText = dados.tempoDecorrido || '00:00:00';
+      } else {
+        progressoEl.classList.remove('ativo');
+      }
+    } catch (e) {
+      // silencioso, o erro principal ja e mostrado por atualizarLista()
+    }
+  }
+
+  setInterval(atualizarLista, 2000);
+  setInterval(atualizarProgresso, 1000);
+  atualizarLista();
+  atualizarProgresso();
+</script>
+
+</body>
+</html>
