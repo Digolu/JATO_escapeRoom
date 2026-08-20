@@ -4,16 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Equipas - Sala de Enigmas</title>
+
 <style>
   :root {
     --bg: #14171c;
     --card-bg: #1e232b;
     --card-border: #2b323d;
     --accent: #5eead4;
+    --accent-hover: #4dd8c2;
     --text: #e7e9ee;
     --muted: #8a90a0;
+    --danger: #f87171;
+    --danger-bg: rgba(248, 113, 113, 0.12);
+    --ok-bg: rgba(94, 234, 212, 0.12);
   }
-  * { box-sizing: border-box; }
+
+  * {
+    box-sizing: border-box;
+  }
+
   body {
     margin: 0;
     padding: 40px 20px;
@@ -22,40 +31,197 @@
     font-family: "Segoe UI", Roboto, Arial, sans-serif;
     min-height: 100vh;
   }
-  header { text-align: center; margin-bottom: 30px; }
-  header h1 { font-size: 1.9em; margin: 0 0 6px 0; }
-  header p { color: var(--muted); margin: 0; font-size: 0.95em; }
+
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  header h1 {
+    font-size: 1.9em;
+    margin: 0 0 6px 0;
+  }
+
+  header p {
+    color: var(--muted);
+    margin: 0;
+    font-size: 0.95em;
+  }
+
+  a.link-enigmas {
+    display: block;
+    text-align: center;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9em;
+    margin-bottom: 24px;
+  }
+
+  a.link-enigmas:hover {
+    text-decoration: underline;
+  }
+
+  .grid {
+    max-width: 1100px;
+    margin: 0 auto 28px auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+
+  .card h2 {
+    margin: 0 0 16px 0;
+    font-size: 1.25em;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: 0.85em;
+  }
+
+  input {
+    width: 100%;
+    padding: 11px 13px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: #14171c;
+    color: var(--text);
+    font-size: 1em;
+    margin-bottom: 14px;
+  }
+
+  input:focus {
+    outline: 1px solid var(--accent);
+  }
+
+  button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #0f1216;
+    font-weight: 700;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: opacity 0.2s ease, background 0.2s ease;
+  }
+
+  button:hover {
+    background: var(--accent-hover);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  button.secundario {
+    background: #2b323d;
+    color: var(--text);
+  }
+
+  button.perigo {
+    background: var(--danger);
+    color: #0f1216;
+  }
+
+  .mensagem {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.9em;
+  }
+
+  .mensagem.ok {
+    display: block;
+    background: var(--ok-bg);
+    color: var(--accent);
+  }
+
+  .mensagem.erro {
+    display: block;
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
 
   .em-progresso {
-    max-width: 900px;
+    max-width: 1100px;
     margin: 0 auto 24px auto;
     background: var(--card-bg);
     border: 1px solid var(--accent);
     border-radius: 14px;
-    padding: 16px 22px;
+    padding: 18px 22px;
     text-align: center;
     display: none;
   }
-  .em-progresso.ativo { display: block; }
-  .em-progresso .nome { font-size: 1.3em; font-weight: 700; color: var(--accent); }
-  .em-progresso .timer { font-size: 1.6em; font-weight: 700; margin-top: 4px; }
+
+  .em-progresso.ativo {
+    display: block;
+  }
+
+  .em-progresso .label {
+    color: var(--muted);
+    font-size: 0.85em;
+    margin-bottom: 4px;
+  }
+
+  .em-progresso .nome {
+    font-size: 1.35em;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .em-progresso .detalhes {
+    color: var(--muted);
+    font-size: 0.9em;
+    margin-top: 4px;
+  }
+
+  .em-progresso .timer {
+    font-size: 1.8em;
+    font-weight: 700;
+    margin-top: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .secao {
+    max-width: 1100px;
+    margin: 0 auto 28px auto;
+  }
+
+  .secao h2 {
+    margin: 0 0 14px 0;
+    font-size: 1.25em;
+  }
 
   table {
     width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
     border-collapse: collapse;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 14px;
     overflow: hidden;
   }
-  th, td {
+
+  th,
+  td {
     padding: 12px 14px;
     text-align: left;
     border-bottom: 1px solid var(--card-border);
     font-size: 0.9em;
+    vertical-align: middle;
   }
+
   th {
     background: #232a34;
     color: var(--muted);
@@ -63,147 +229,499 @@
     font-size: 0.75em;
     letter-spacing: 1px;
   }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #232a34; }
 
-  #vazio {
-    text-align: center;
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: #232a34;
+  }
+
+  .acoes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .vazio {
     color: var(--muted);
-    margin-top: 30px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
     display: none;
   }
-  #erro {
+
+  #erroGeral {
     text-align: center;
-    color: #f87171;
-    margin-top: 30px;
+    color: var(--danger);
+    margin-top: 24px;
     display: none;
+  }
+
+  .botoes-reset {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 800px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .botoes-reset {
+      justify-content: stretch;
+    }
+
+    .botoes-reset button {
+      width: 100%;
+    }
   }
 </style>
 </head>
+
 <body>
 
 <header>
-  <h1>Histórico de Equipas</h1>
-  <p>Resultados registados na sala de enigmas</p>
+  <h1>Gestão de Equipas</h1>
+  <p>Adicionar equipas, escolher quem começa e consultar resultados</p>
 </header>
 
+<a class="link-enigmas" href="/">Voltar aos enigmas &rarr;</a>
+
 <div class="em-progresso" id="progresso">
+  <div class="label">Equipa em progresso</div>
   <div class="nome" id="progressoNome"></div>
-  <div class="timer" id="progressoTimer"></div>
+  <div class="detalhes" id="progressoDetalhes"></div>
+  <div class="timer" id="progressoTimer">00:00:00</div>
 </div>
 
-<table id="tabela" style="display:none;">
-  <thead>
-    <tr id="cabecalho">
-      <th>Equipa</th>
-      <th>Chegada</th>
-      <th>Início</th>
-      <th>Fim</th>
-      <th>Tempo total</th>
-      <!-- colunas "Tent. E1", "Tent. E2", ... geradas dinamicamente por JS -->
-      <th>Total tent.</th>
-    </tr>
-  </thead>
-  <tbody id="corpo"></tbody>
-</table>
+<div class="grid">
+  <div class="card">
+    <h2>Adicionar equipa</h2>
 
-<p id="vazio">Ainda não há equipas registadas.</p>
-<p id="erro">Erro de ligação ao servidor...</p>
+    <form id="formAdicionar">
+      <label for="nome">Nome da equipa</label>
+      <input type="text" id="nome" autocomplete="off" required>
+
+      <label for="membros">Número de membros</label>
+      <input type="number" id="membros" min="1" step="1" required>
+
+      <label for="datahora">Dia e hora dos enigmas</label>
+      <input type="datetime-local" id="datahora" required>
+
+      <button type="submit" id="btnAdicionar">Adicionar equipa</button>
+    </form>
+
+    <div id="mensagemAdicionar" class="mensagem"></div>
+  </div>
+
+  <div class="card">
+    <h2>Como funciona</h2>
+    <p style="color: var(--muted); line-height: 1.5; margin-top: 0;">
+      Primeiro adicionas as equipas nesta página. Depois, na lista de equipas pendentes,
+      escolhes qual delas vai começar. A página dos enigmas apenas mostra o estado dos enigmas
+      e a equipa atualmente em jogo.
+    </p>
+    <p style="color: var(--muted); line-height: 1.5; margin-bottom: 0;">
+      Quando todos os enigmas forem resolvidos, o sistema grava automaticamente o tempo total
+      e o tempo de cada enigma.
+    </p>
+  </div>
+</div>
+
+<div class="secao">
+  <h2>Equipas pendentes</h2>
+
+  <table id="tabelaPendentes" style="display:none;">
+    <thead>
+      <tr>
+        <th>Equipa</th>
+        <th>Membros</th>
+        <th>Dia e hora</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody id="corpoPendentes"></tbody>
+  </table>
+
+  <div class="vazio" id="vazioPendentes">
+    Não há equipas pendentes.
+  </div>
+</div>
+
+<div class="secao">
+  <h2>Resultados</h2>
+
+  <table id="tabelaResultados" style="display:none;">
+    <thead>
+      <tr id="cabecalhoResultados">
+        <th>Equipa</th>
+        <th>Membros</th>
+        <th>Dia e hora</th>
+        <th>Tempo total</th>
+        <!-- Colunas de tempo por enigma criadas por JavaScript -->
+      </tr>
+    </thead>
+    <tbody id="corpoResultados"></tbody>
+  </table>
+
+  <div class="vazio" id="vazioResultados">
+    Ainda não há resultados registados.
+  </div>
+</div>
+
+<div class="botoes-reset">
+  <button class="secundario" id="btnResetPendentes">Apagar pendentes</button>
+  <button class="perigo" id="btnResetResultados">Apagar resultados</button>
+</div>
+
+<p id="erroGeral">Erro de ligação ao servidor...</p>
 
 <script>
-  const corpo = document.getElementById('corpo');
-  const tabela = document.getElementById('tabela');
-  const vazioEl = document.getElementById('vazio');
-  const erroEl = document.getElementById('erro');
+  const formAdicionar = document.getElementById('formAdicionar');
+  const inputNome = document.getElementById('nome');
+  const inputMembros = document.getElementById('membros');
+  const inputDataHora = document.getElementById('datahora');
+  const btnAdicionar = document.getElementById('btnAdicionar');
+  const mensagemAdicionar = document.getElementById('mensagemAdicionar');
+
   const progressoEl = document.getElementById('progresso');
   const progressoNomeEl = document.getElementById('progressoNome');
+  const progressoDetalhesEl = document.getElementById('progressoDetalhes');
   const progressoTimerEl = document.getElementById('progressoTimer');
 
-  function formatarTempoTotal(segundos) {
+  const tabelaPendentes = document.getElementById('tabelaPendentes');
+  const corpoPendentes = document.getElementById('corpoPendentes');
+  const vazioPendentes = document.getElementById('vazioPendentes');
+
+  const tabelaResultados = document.getElementById('tabelaResultados');
+  const cabecalhoResultados = document.getElementById('cabecalhoResultados');
+  const corpoResultados = document.getElementById('corpoResultados');
+  const vazioResultados = document.getElementById('vazioResultados');
+
+  const btnResetPendentes = document.getElementById('btnResetPendentes');
+  const btnResetResultados = document.getElementById('btnResetResultados');
+
+  const erroGeral = document.getElementById('erroGeral');
+
+  let equipaEmProgresso = false;
+  let numEnigmasAtual = -1;
+
+  function mostrarMensagem(el, texto, tipo) {
+    el.innerText = texto;
+    el.className = 'mensagem ' + tipo;
+  }
+
+  function esconderMensagem(el) {
+    el.innerText = '';
+    el.className = 'mensagem';
+  }
+
+  function escaparHtml(valor) {
+    return String(valor || '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function formatarTempo(segundos) {
+    segundos = Number(segundos || 0);
+
     const h = Math.floor(segundos / 3600);
     const m = Math.floor((segundos % 3600) / 60);
     const s = segundos % 60;
-    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+    return String(h).padStart(2, '0') + ':' +
+           String(m).padStart(2, '0') + ':' +
+           String(s).padStart(2, '0');
   }
 
-  let numEnigmasAtual = -1; // para so reconstruir o cabecalho quando muda
+  function formatarDataHora(valor) {
+    if (!valor) {
+      return '';
+    }
 
-  function ajustarCabecalho(numEnigmas) {
-    if (numEnigmas === numEnigmasAtual) return;
+    return String(valor).replace('T', ' ');
+  }
+
+  function ajustarCabecalhoResultados(numEnigmas) {
+    if (numEnigmas === numEnigmasAtual) {
+      return;
+    }
+
     numEnigmasAtual = numEnigmas;
 
-    const cabecalho = document.getElementById('cabecalho');
-    // remove eventuais colunas "Tent. E*" antigas (mantem as 5 fixas do inicio + "Total tent." no fim)
-    while (cabecalho.children.length > 6) {
-      cabecalho.removeChild(cabecalho.children[5]);
+    while (cabecalhoResultados.children.length > 4) {
+      cabecalhoResultados.removeChild(cabecalhoResultados.lastChild);
     }
-    for (let i = numEnigmas; i >= 1; i--) {
+
+    for (let i = 1; i <= numEnigmas; i++) {
       const th = document.createElement('th');
-      th.innerText = 'Tent. E' + i;
-      cabecalho.insertBefore(th, cabecalho.children[5]);
-    }
-  }
-
-  async function atualizarLista() {
-    try {
-      const res = await fetch('/equipas.json');
-      const equipas = await res.json();
-
-      if (equipas.length === 0) {
-        tabela.style.display = 'none';
-        vazioEl.style.display = 'block';
-      } else {
-        vazioEl.style.display = 'none';
-        tabela.style.display = 'table';
-
-        // usa o numero de enigmas da equipa mais recente para montar o cabecalho
-        const ultima = equipas[equipas.length - 1];
-        ajustarCabecalho((ultima.tentativas || []).length);
-
-        corpo.innerHTML = '';
-        // mostra a mais recente primeiro
-        equipas.slice().reverse().forEach((eq) => {
-          const tr = document.createElement('tr');
-          const colunasTentativas = (eq.tentativas || []).map((t) => `<td>${t}</td>`).join('');
-          tr.innerHTML = `
-            <td>${eq.nome}</td>
-            <td>${eq.horaChegada}</td>
-            <td>${eq.horaInicio}</td>
-            <td>${eq.horaFim}</td>
-            <td>${formatarTempoTotal(eq.tempoTotalSeg)}</td>
-            ${colunasTentativas}
-            <td>${eq.tentativasTotal}</td>
-          `;
-          corpo.appendChild(tr);
-        });
-      }
-      erroEl.style.display = 'none';
-    } catch (e) {
-      erroEl.style.display = 'block';
+      th.innerText = 'Tempo E' + i;
+      cabecalhoResultados.appendChild(th);
     }
   }
 
   async function atualizarProgresso() {
     try {
       const res = await fetch('/valores');
+
+      if (!res.ok) {
+        throw new Error('Erro ao obter valores');
+      }
+
       const dados = await res.json();
 
-      if (dados.emProgresso) {
+      equipaEmProgresso = dados.emProgresso === true;
+
+      if (equipaEmProgresso) {
         progressoEl.classList.add('ativo');
-        progressoNomeEl.innerText = dados.equipaAtual;
+        progressoNomeEl.innerText = dados.equipaAtual || '';
+
+        const membros = dados.membrosAtual || 0;
+        const dataHora = formatarDataHora(dados.dataHoraAtual || '');
+
+        progressoDetalhesEl.innerText = membros + ' membros' + (dataHora ? ' · ' + dataHora : '');
         progressoTimerEl.innerText = dados.tempoDecorrido || '00:00:00';
       } else {
         progressoEl.classList.remove('ativo');
       }
+
+      erroGeral.style.display = 'none';
     } catch (e) {
-      // silencioso, o erro principal ja e mostrado por atualizarLista()
+      erroGeral.style.display = 'block';
     }
   }
 
-  setInterval(atualizarLista, 2000);
-  setInterval(atualizarProgresso, 1000);
-  atualizarLista();
-  atualizarProgresso();
+  async function atualizarPendentes() {
+    try {
+      const res = await fetch('/equipas/pendentes.json');
+
+      if (!res.ok) {
+        throw new Error('Erro ao obter equipas pendentes');
+      }
+
+      const pendentes = await res.json();
+
+      corpoPendentes.innerHTML = '';
+
+      if (!pendentes || pendentes.length === 0) {
+        tabelaPendentes.style.display = 'none';
+        vazioPendentes.style.display = 'block';
+      } else {
+        tabelaPendentes.style.display = 'table';
+        vazioPendentes.style.display = 'none';
+
+        pendentes.forEach((eq) => {
+          const tr = document.createElement('tr');
+
+          const disabled = equipaEmProgresso ? 'disabled' : '';
+
+          tr.innerHTML = `
+            <td>${escaparHtml(eq.nome)}</td>
+            <td>${escaparHtml(eq.membros)}</td>
+            <td>${escaparHtml(formatarDataHora(eq.dataHora))}</td>
+            <td>
+              <div class="acoes">
+                <button ${disabled} onclick="iniciarEquipa('${escaparHtml(eq.id)}')">
+                  Começar
+                </button>
+              </div>
+            </td>
+          `;
+
+          corpoPendentes.appendChild(tr);
+        });
+      }
+
+      erroGeral.style.display = 'none';
+    } catch (e) {
+      erroGeral.style.display = 'block';
+    }
+  }
+
+  async function atualizarResultados() {
+    try {
+      const res = await fetch('/equipas/resultados.json');
+
+      if (!res.ok) {
+        throw new Error('Erro ao obter resultados');
+      }
+
+      const resultados = await res.json();
+
+      corpoResultados.innerHTML = '';
+
+      if (!resultados || resultados.length === 0) {
+        tabelaResultados.style.display = 'none';
+        vazioResultados.style.display = 'block';
+      } else {
+        tabelaResultados.style.display = 'table';
+        vazioResultados.style.display = 'none';
+
+        const ultima = resultados[resultados.length - 1];
+        ajustarCabecalhoResultados((ultima.temposEnigma || []).length);
+
+        resultados.slice().reverse().forEach((eq) => {
+          const tempos = eq.temposEnigma || [];
+
+          const colunasTempos = tempos
+            .map((tempo) => `<td>${formatarTempo(tempo)}</td>`)
+            .join('');
+
+          const tr = document.createElement('tr');
+
+          tr.innerHTML = `
+            <td>${escaparHtml(eq.nome)}</td>
+            <td>${escaparHtml(eq.membros)}</td>
+            <td>${escaparHtml(formatarDataHora(eq.dataHora))}</td>
+            <td>${formatarTempo(eq.tempoTotalSeg)}</td>
+            ${colunasTempos}
+          `;
+
+          corpoResultados.appendChild(tr);
+        });
+      }
+
+      erroGeral.style.display = 'none';
+    } catch (e) {
+      erroGeral.style.display = 'block';
+    }
+  }
+
+  async function atualizarTudo() {
+    await atualizarProgresso();
+    await atualizarPendentes();
+    await atualizarResultados();
+  }
+
+  async function iniciarEquipa(id) {
+    if (equipaEmProgresso) {
+      alert('Já existe uma equipa em progresso.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/equipa/iniciar?id=' + encodeURIComponent(id));
+
+      if (!res.ok) {
+        const texto = await res.text();
+        throw new Error(texto || 'Erro ao iniciar equipa');
+      }
+
+      await atualizarTudo();
+    } catch (e) {
+      alert('Não foi possível iniciar a equipa: ' + e.message);
+    }
+  }
+
+  formAdicionar.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    esconderMensagem(mensagemAdicionar);
+
+    const nome = inputNome.value.trim();
+    const membros = Number(inputMembros.value);
+    const dataHora = inputDataHora.value;
+
+    if (!nome) {
+      mostrarMensagem(mensagemAdicionar, 'Escreve o nome da equipa.', 'erro');
+      return;
+    }
+
+    if (!membros || membros <= 0) {
+      mostrarMensagem(mensagemAdicionar, 'Indica um número de membros válido.', 'erro');
+      return;
+    }
+
+    if (!dataHora) {
+      mostrarMensagem(mensagemAdicionar, 'Escolhe o dia e a hora.', 'erro');
+      return;
+    }
+
+    btnAdicionar.disabled = true;
+
+    try {
+      const url = '/equipa/adicionar?nome=' + encodeURIComponent(nome) +
+                  '&membros=' + encodeURIComponent(membros) +
+                  '&datahora=' + encodeURIComponent(dataHora);
+
+      const res = await fetch(url);
+
+      if (!res.ok) {
+        const texto = await res.text();
+        throw new Error(texto || 'Erro ao adicionar equipa');
+      }
+
+      inputNome.value = '';
+      inputMembros.value = '';
+      inputDataHora.value = '';
+
+      mostrarMensagem(mensagemAdicionar, 'Equipa adicionada com sucesso.', 'ok');
+
+      await atualizarPendentes();
+    } catch (e) {
+      mostrarMensagem(mensagemAdicionar, 'Não foi possível adicionar a equipa: ' + e.message, 'erro');
+    } finally {
+      btnAdicionar.disabled = false;
+    }
+  });
+
+  btnResetPendentes.addEventListener('click', async () => {
+    if (!confirm('Tens a certeza que queres apagar todas as equipas pendentes?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/equipas/pendentes/reset');
+
+      if (!res.ok) {
+        throw new Error('Erro ao apagar pendentes');
+      }
+
+      await atualizarPendentes();
+    } catch (e) {
+      alert('Não foi possível apagar as equipas pendentes.');
+    }
+  });
+
+  btnResetResultados.addEventListener('click', async () => {
+    if (!confirm('Tens a certeza que queres apagar todos os resultados?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/equipas/resultados/reset');
+
+      if (!res.ok) {
+        throw new Error('Erro ao apagar resultados');
+      }
+
+      await atualizarResultados();
+    } catch (e) {
+      alert('Não foi possível apagar os resultados.');
+    }
+  });
+
+  setInterval(atualizarTudo, 2000);
+  setInterval(atualizarProgresso, 500);
+
+  atualizarTudo();
 </script>
 
 </body>

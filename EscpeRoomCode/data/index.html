@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sala de Enigmas</title>
+
 <style>
   :root {
     --bg: #14171c;
@@ -14,9 +15,12 @@
     --pendente: #8a90a0;
     --resolvido: #5eead4;
     --text: #e7e9ee;
+    --danger: #f87171;
   }
 
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
 
   body {
     margin: 0;
@@ -29,7 +33,7 @@
 
   header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
   }
 
   header h1 {
@@ -52,11 +56,13 @@
     font-size: 0.9em;
     margin-bottom: 24px;
   }
-  a.link-equipas:hover { text-decoration: underline; }
 
-  /* ---- Painel de controlo da equipa ---- */
+  a.link-equipas:hover {
+    text-decoration: underline;
+  }
+
   #painelEquipa {
-    max-width: 500px;
+    max-width: 560px;
     margin: 0 auto 36px auto;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -65,54 +71,32 @@
     text-align: center;
   }
 
-  #formIniciar {
-    display: flex;
-    gap: 10px;
-  }
-
-  #inputNome {
-    flex: 1;
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--card-border);
-    background: #14171c;
-    color: var(--text);
+  #semEquipa {
+    color: #8a90a0;
     font-size: 1em;
   }
-  #inputNome:focus { outline: 1px solid var(--accent); }
 
-  #btnIniciar {
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    background: var(--accent);
-    color: #0f1216;
-    font-weight: 700;
-    font-size: 1em;
-    cursor: pointer;
-    transition: opacity 0.2s ease;
+  #painelAtivo {
+    display: none;
   }
-  #btnIniciar:hover { opacity: 0.85; }
-  #btnIniciar:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  #painelAtivo { display: none; }
   #painelAtivo .nome-equipa {
-    font-size: 1.3em;
+    font-size: 1.35em;
     font-weight: 700;
     color: var(--accent);
     margin-bottom: 6px;
   }
+
+  #painelAtivo .detalhes {
+    color: #8a90a0;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+  }
+
   #painelAtivo .timer {
     font-size: 2.2em;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-  }
-
-  #painelErro {
-    color: #f87171;
-    font-size: 0.85em;
-    margin-top: 10px;
-    display: none;
   }
 
   #enigmas {
@@ -140,7 +124,9 @@
   .enigma-card::before {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 3px;
     background: var(--pendente);
     transition: background 0.3s ease;
@@ -170,13 +156,17 @@
     color: var(--resolvido);
   }
 
-  .status-tag {
+  .status-tag,
+  .online-tag {
     display: inline-block;
     margin-top: 12px;
     margin-right: 6px;
     font-size: 0.75em;
     padding: 3px 10px;
     border-radius: 20px;
+  }
+
+  .status-tag {
     background: #2b323d;
     color: #8a90a0;
   }
@@ -186,24 +176,17 @@
     color: var(--accent);
   }
 
-  .online-tag {
-    display: inline-block;
-    margin-top: 12px;
-    font-size: 0.75em;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-weight: 600;
-  }
   .online-tag.online {
     background: rgba(94, 234, 212, 0.12);
     color: var(--accent);
   }
+
   .online-tag.offline {
     background: rgba(248, 113, 113, 0.12);
-    color: #f87171;
+    color: var(--danger);
   }
 
-  .tentativas-tag {
+  .info-tag {
     display: block;
     margin-top: 8px;
     font-size: 0.8em;
@@ -212,12 +195,13 @@
 
   #erro {
     text-align: center;
-    color: #f87171;
+    color: var(--danger);
     margin-top: 30px;
     display: none;
   }
 </style>
 </head>
+
 <body>
 
 <header>
@@ -225,42 +209,62 @@
   <p>Códigos recebidos em tempo real</p>
 </header>
 
-<a class="link-equipas" href="/equipas">Ver histórico de equipas &rarr;</a>
+<a class="link-equipas" href="/equipas">Gerir equipas &rarr;</a>
 
 <div id="painelEquipa">
-  <div id="painelIniciar">
-    <form id="formIniciar">
-      <input type="text" id="inputNome" placeholder="Nome da equipa" autocomplete="off" />
-      <button type="submit" id="btnIniciar">Iniciar</button>
-    </form>
-    <div id="painelErro"></div>
+  <div id="semEquipa">
+    Nenhuma equipa em progresso.
   </div>
 
   <div id="painelAtivo">
     <div class="nome-equipa" id="nomeEquipaAtiva"></div>
+    <div class="detalhes" id="detalhesEquipaAtiva"></div>
     <div class="timer" id="timerAtivo">00:00:00</div>
   </div>
 </div>
 
 <div id="enigmas"></div>
+
 <p id="erro">Erro de ligação ao servidor...</p>
 
 <script>
   const container = document.getElementById('enigmas');
   const erroEl = document.getElementById('erro');
-  let cardsCriados = false;
 
-  const painelIniciar = document.getElementById('painelIniciar');
+  const semEquipaEl = document.getElementById('semEquipa');
   const painelAtivo = document.getElementById('painelAtivo');
-  const formIniciar = document.getElementById('formIniciar');
-  const inputNome = document.getElementById('inputNome');
-  const btnIniciar = document.getElementById('btnIniciar');
-  const painelErro = document.getElementById('painelErro');
   const nomeEquipaAtivaEl = document.getElementById('nomeEquipaAtiva');
+  const detalhesEquipaAtivaEl = document.getElementById('detalhesEquipaAtiva');
   const timerAtivoEl = document.getElementById('timerAtivo');
+
+  let cardsCriados = false;
 
   function chaveParaNumero(chave) {
     return parseInt(chave.replace('cod', ''), 10);
+  }
+
+  function formatarTempoTotal(segundos) {
+    if (segundos === undefined || segundos === null || segundos < 0) {
+      return '--:--:--';
+    }
+
+    segundos = Number(segundos);
+
+    const h = Math.floor(segundos / 3600);
+    const m = Math.floor((segundos % 3600) / 60);
+    const s = segundos % 60;
+
+    return String(h).padStart(2, '0') + ':' +
+           String(m).padStart(2, '0') + ':' +
+           String(s).padStart(2, '0');
+  }
+
+  function formatarDataHora(valor) {
+    if (!valor) {
+      return '';
+    }
+
+    return String(valor).replace('T', ' ');
   }
 
   function criarCards(dados) {
@@ -269,43 +273,56 @@
       .sort((a, b) => chaveParaNumero(a) - chaveParaNumero(b));
 
     container.innerHTML = '';
+
     chaves.forEach((chave) => {
       const numero = chaveParaNumero(chave);
+
       const card = document.createElement('div');
       card.className = 'enigma-card';
       card.id = 'card-' + chave;
 
       card.innerHTML = `
         <div class="enigma-titulo">Enigma ${numero}</div>
-        <div class="enigma-valor" id="valor-${chave}"></div>
-        <div class="status-tag" id="status-${chave}"></div>
-        <div class="online-tag" id="online-${chave}"></div>
-        <div class="tentativas-tag" id="tentativas-${chave}"></div>
+        <div class="enigma-valor" id="valor-${chave}">Por descobrir</div>
+        <div class="status-tag" id="status-${chave}">A aguardar</div>
+        <div class="online-tag offline" id="online-${chave}">Offline</div>
+        <div class="info-tag" id="tentativas-${chave}">Tentativas erradas: 0</div>
+        <div class="info-tag" id="tempo-${chave}">Tempo do enigma: --:--:--</div>
       `;
+
       container.appendChild(card);
     });
+
     cardsCriados = true;
   }
 
   function atualizarCards(dados) {
     Object.keys(dados).forEach((chave) => {
-      if (!chave.startsWith('cod')) return;
+      if (!chave.startsWith('cod')) {
+        return;
+      }
 
       const estado = dados[chave];
+
       const resolvido = estado.resolvido === true;
       const tentativas = estado.tentativas || 0;
       const atual = estado.atual || '';
       const online = estado.online === true;
+      const tempoEnigmaSeg = estado.tempoEnigmaSeg;
 
       const card = document.getElementById('card-' + chave);
       const valorEl = document.getElementById('valor-' + chave);
       const statusEl = document.getElementById('status-' + chave);
       const onlineEl = document.getElementById('online-' + chave);
       const tentativasEl = document.getElementById('tentativas-' + chave);
-      if (!card || !valorEl || !statusEl || !onlineEl || !tentativasEl) return;
+      const tempoEl = document.getElementById('tempo-' + chave);
+
+      if (!card || !valorEl || !statusEl || !onlineEl || !tentativasEl || !tempoEl) {
+        return;
+      }
 
       if (resolvido) {
-        valorEl.innerText = atual;
+        valorEl.innerText = atual && atual.length > 0 ? atual : 'Resolvido';
       } else if (atual.length > 0) {
         valorEl.innerText = atual;
       } else {
@@ -313,9 +330,18 @@
       }
 
       statusEl.innerText = resolvido ? 'Resolvido' : 'A aguardar';
+
       onlineEl.innerText = online ? 'Online' : 'Offline';
       onlineEl.className = 'online-tag ' + (online ? 'online' : 'offline');
+
       tentativasEl.innerText = 'Tentativas erradas: ' + tentativas;
+
+      if (resolvido) {
+        tempoEl.innerText = 'Tempo do enigma: ' + formatarTempoTotal(tempoEnigmaSeg);
+      } else {
+        tempoEl.innerText = 'Tempo do enigma: --:--:--';
+      }
+
       card.classList.toggle('resolvido', resolvido);
     });
   }
@@ -324,56 +350,52 @@
     const emProgresso = dados.emProgresso === true;
 
     if (emProgresso) {
-      painelIniciar.style.display = 'none';
+      semEquipaEl.style.display = 'none';
       painelAtivo.style.display = 'block';
+
       nomeEquipaAtivaEl.innerText = dados.equipaAtual || '';
+
+      const membros = dados.membrosAtual || 0;
+      const dataHora = formatarDataHora(dados.dataHoraAtual || '');
+
+      if (dataHora) {
+        detalhesEquipaAtivaEl.innerText = membros + ' membros · ' + dataHora;
+      } else {
+        detalhesEquipaAtivaEl.innerText = membros + ' membros';
+      }
+
       timerAtivoEl.innerText = dados.tempoDecorrido || '00:00:00';
     } else {
-      painelIniciar.style.display = 'block';
+      semEquipaEl.style.display = 'block';
       painelAtivo.style.display = 'none';
+      nomeEquipaAtivaEl.innerText = '';
+      detalhesEquipaAtivaEl.innerText = '';
+      timerAtivoEl.innerText = '00:00:00';
     }
   }
 
   async function atualizar() {
     try {
       const res = await fetch('/valores');
+
+      if (!res.ok) {
+        throw new Error('Erro ao obter valores');
+      }
+
       const dados = await res.json();
 
       if (!cardsCriados) {
         criarCards(dados);
       }
+
       atualizarCards(dados);
       atualizarPainelEquipa(dados);
+
       erroEl.style.display = 'none';
     } catch (e) {
       erroEl.style.display = 'block';
     }
   }
-
-  formIniciar.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const nome = inputNome.value.trim();
-    painelErro.style.display = 'none';
-
-    if (nome.length === 0) {
-      painelErro.innerText = 'Escreve o nome da equipa.';
-      painelErro.style.display = 'block';
-      return;
-    }
-
-    btnIniciar.disabled = true;
-    try {
-      const res = await fetch('/equipa/nova?nome=' + encodeURIComponent(nome));
-      if (!res.ok) throw new Error('Falha ao iniciar');
-      inputNome.value = '';
-      atualizar(); // atualiza logo o painel, sem esperar pelo proximo ciclo
-    } catch (e) {
-      painelErro.innerText = 'Não foi possível iniciar a equipa. Tenta novamente.';
-      painelErro.style.display = 'block';
-    } finally {
-      btnIniciar.disabled = false;
-    }
-  });
 
   setInterval(atualizar, 300);
   atualizar();
