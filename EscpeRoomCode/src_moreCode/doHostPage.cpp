@@ -562,8 +562,8 @@ void handleReceber() {
     initCodigos();
 
     Serial.println("Equipa terminou todos os enigmas.");
-  }
 
+  }
   if (recebeuAlgo) {
     server.send(200, "text/plain", "OK");
   } else {
@@ -612,7 +612,5 @@ void setup() {
 
 void loop() {
   server.handleClient();
-
-  
 
 }

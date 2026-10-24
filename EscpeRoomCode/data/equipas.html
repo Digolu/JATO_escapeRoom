@@ -194,6 +194,26 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .em-progresso .caixa-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 0.85em;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+
+  .em-progresso .caixa-tag.aberta {
+    background: var(--ok-bg);
+    color: var(--accent);
+  }
+
+  .em-progresso .btn-terminar {
+    display: block;
+    margin: 16px auto 0 auto;
+  }
+
   .secao {
     max-width: 1100px;
     margin: 0 auto 28px auto;
@@ -306,6 +326,8 @@
   <div class="nome" id="progressoNome"></div>
   <div class="detalhes" id="progressoDetalhes"></div>
   <div class="timer" id="progressoTimer">00:00:00</div>
+  <div class="caixa-tag" id="progressoCaixa">Caixa fechada</div>
+  <button class="perigo btn-terminar" id="btnTerminarEquipa">Terminar equipa</button>
 </div>
 
 <div class="grid">
@@ -336,8 +358,8 @@
       e a equipa atualmente em jogo.
     </p>
     <p style="color: var(--muted); line-height: 1.5; margin-bottom: 0;">
-      Quando todos os enigmas forem resolvidos, o sistema grava automaticamente o tempo total
-      e o tempo de cada enigma.
+      Resolver o enigma não termina o jogo automaticamente — usa o botão
+      "Terminar equipa" acima quando quiseres fechar a sessão e gravar o resultado.
     </p>
   </div>
 </div>
@@ -402,6 +424,8 @@
   const progressoNomeEl = document.getElementById('progressoNome');
   const progressoDetalhesEl = document.getElementById('progressoDetalhes');
   const progressoTimerEl = document.getElementById('progressoTimer');
+  const progressoCaixaEl = document.getElementById('progressoCaixa');
+  const btnTerminarEquipa = document.getElementById('btnTerminarEquipa');
 
   const tabelaPendentes = document.getElementById('tabelaPendentes');
   const corpoPendentes = document.getElementById('corpoPendentes');
@@ -498,6 +522,10 @@
 
         progressoDetalhesEl.innerText = membros + ' membros' + (dataHora ? ' · ' + dataHora : '');
         progressoTimerEl.innerText = dados.tempoDecorrido || '00:00:00';
+
+        const caixaAberta = !!(dados.cod1 && dados.cod1.resolvido === true);
+        progressoCaixaEl.innerText = caixaAberta ? 'Caixa aberta' : 'Caixa fechada';
+        progressoCaixaEl.classList.toggle('aberta', caixaAberta);
       } else {
         progressoEl.classList.remove('ativo');
       }
@@ -629,6 +657,29 @@
       alert('Não foi possível iniciar a equipa: ' + e.message);
     }
   }
+
+  btnTerminarEquipa.addEventListener('click', async () => {
+    if (!confirm('Tens a certeza que queres terminar esta equipa e gravar o resultado?')) {
+      return;
+    }
+
+    btnTerminarEquipa.disabled = true;
+
+    try {
+      const res = await fetch('/equipa/terminar');
+
+      if (!res.ok) {
+        const texto = await res.text();
+        throw new Error(texto || 'Erro ao terminar equipa');
+      }
+
+      await atualizarTudo();
+    } catch (e) {
+      alert('Não foi possível terminar a equipa: ' + e.message);
+    } finally {
+      btnTerminarEquipa.disabled = false;
+    }
+  });
 
   formAdicionar.addEventListener('submit', async (e) => {
     e.preventDefault();

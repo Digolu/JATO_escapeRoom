@@ -61,6 +61,27 @@
     text-decoration: underline;
   }
 
+  #caixaBanner {
+    max-width: 560px;
+    margin: 0 auto 20px auto;
+    padding: 18px;
+    border-radius: 14px;
+    text-align: center;
+    font-size: 1.6em;
+    font-weight: 800;
+    letter-spacing: 1px;
+    background: rgba(248, 113, 113, 0.12);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  #caixaBanner.aberta {
+    background: rgba(94, 234, 212, 0.12);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
   #painelEquipa {
     max-width: 560px;
     margin: 0 auto 36px auto;
@@ -211,6 +232,8 @@
 
 <a class="link-equipas" href="/equipas">Gerir equipas &rarr;</a>
 
+<div id="caixaBanner">CAIXA FECHADA</div>
+
 <div id="painelEquipa">
   <div id="semEquipa">
     Nenhuma equipa em progresso.
@@ -230,6 +253,8 @@
 <script>
   const container = document.getElementById('enigmas');
   const erroEl = document.getElementById('erro');
+
+  const caixaBannerEl = document.getElementById('caixaBanner');
 
   const semEquipaEl = document.getElementById('semEquipa');
   const painelAtivo = document.getElementById('painelAtivo');
@@ -346,6 +371,14 @@
     });
   }
 
+  function atualizarCaixaBanner(dados) {
+    // Agora verifica diretamente se o servo está aberto (seja por enigma ou por admin)
+    const aberta = dados.servoAberto === true;
+
+    caixaBannerEl.innerText = aberta ? 'CAIXA ABERTA' : 'CAIXA FECHADA';
+    caixaBannerEl.classList.toggle('aberta', aberta);
+  }
+
   function atualizarPainelEquipa(dados) {
     const emProgresso = dados.emProgresso === true;
 
@@ -390,6 +423,7 @@
 
       atualizarCards(dados);
       atualizarPainelEquipa(dados);
+      atualizarCaixaBanner(dados);
 
       erroEl.style.display = 'none';
     } catch (e) {

@@ -3,6 +3,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 #include <WiFiEsp.h>
+#include <Servo.h>
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 Keypad teclado;
@@ -26,6 +27,33 @@ int status = WL_IDLE_STATUS;
 // ---- Heartbeat (para o ESP2 saber que este Mega esta online) ----
 unsigned long ultimoPing = 0;
 const unsigned long INTERVALO_PING = 2000; // manda "estou vivo" a cada 2s
+
+// ---------------- Servo (tranca) ----------------
+#define PINO_SERVO 10          // ajusta ao pino que usares
+const int ANGULO_FECHADO = 0;
+const int ANGULO_ABERTO  = 90;
+const unsigned long DURACAO_SERVO = 10000; // 10 segundos
+
+Servo servoTranca;
+bool servoAtivo = false;
+unsigned long servoInicio = 0;
+
+void iniciarServo() {
+  servoTranca.write(ANGULO_ABERTO);
+  servoAtivo = true;
+  servoInicio = millis();
+  Serial.println("Servo: a abrir (90 graus)");
+}
+
+// Chamada em cada loop(); nao bloqueia (mantem o ping e o teclado a funcionar
+// durante os 10 segundos, ao contrario de um delay(10000))
+void atualizarServo() {
+  if (servoAtivo && (millis() - servoInicio >= DURACAO_SERVO)) {
+    servoTranca.write(ANGULO_FECHADO);
+    servoAtivo = false;
+    Serial.println("Servo: a fechar (0 graus)");
+  }
+}
 
 void sendToWifi(String val){
   if (client.connect(server, 80)) {
@@ -78,6 +106,7 @@ void verificarCodigo() {
     lcd.print("Codigo correto!     ");
     Serial.println("CODIGO CORRETO");
     sendToWifi(String("CORRETO"));
+    iniciarServo();
   } else {
     lcd.setCursor(0, 3);
     sendToWifi(String("ERRADO"));
@@ -157,10 +186,14 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   ultimoPing = millis();
+
+  servoTranca.attach(PINO_SERVO);
+  servoTranca.write(ANGULO_FECHADO);
 }
 
 void loop() {
   verTeclado();
+  atualizarServo();
 
   // Heartbeat: manda um ping periodico mesmo que ninguem esteja a mexer no teclado
   if (millis() - ultimoPing >= INTERVALO_PING) {
